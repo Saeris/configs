@@ -9,7 +9,7 @@ export default defineConfig({
   fmt,
   // ── Builds (tsdown) ─────────────────────────────────────────────────
   pack: {
-    entry: [manifest.exports["."].import.development],
+    entry: [manifest.exports["."].development],
     clean: true,
     format: [`esm`],
     dts: true,
