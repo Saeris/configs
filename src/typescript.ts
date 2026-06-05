@@ -6,16 +6,16 @@ import type { OxlintConfig } from "vite-plus/lint";
  * program, so they live separately from {@link "./type-aware".typeAware}.
  *
  * Three overrides cooperate here:
- * - `**\/*.?(m|c)ts?(x)` enables the typed-flavoured rules.
- * - `**\/*.ts?(x)` disables the base ESLint rules that TypeScript supersedes
+ * - `**\/*.{ts,mts,cts,tsx}` enables the typed-flavoured rules.
+ * - `**\/*.{ts,tsx}` disables the base ESLint rules that TypeScript supersedes
  *   (the `@typescript-eslint/*` variants take over).
- * - `**\/*.{spec,test}.{j,t}s?(x)` relaxes explicit return types in tests.
+ * - `**\/*.{spec,test}.{js,jsx,ts,tsx}` relaxes explicit return types in tests.
  */
 export const typescript: OxlintConfig = {
   plugins: ["typescript"],
   overrides: [
     {
-      files: ["**/*.?(m|c)ts?(x)"],
+      files: ["**/*.{ts,mts,cts,tsx}"],
       rules: {
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": [
@@ -136,7 +136,7 @@ export const typescript: OxlintConfig = {
       }
     },
     {
-      files: ["**/*.ts?(x)"],
+      files: ["**/*.{ts,tsx}"],
       rules: {
         "default-param-last": "off",
         "@typescript-eslint/dot-notation": "off",
@@ -159,7 +159,7 @@ export const typescript: OxlintConfig = {
       }
     },
     {
-      files: ["**/*.{spec,test}.{j,t}s?(x)"],
+      files: ["**/*.{spec,test}.{js,jsx,ts,tsx}"],
       rules: {
         "@typescript-eslint/explicit-function-return-type": "off"
       }

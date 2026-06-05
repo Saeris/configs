@@ -13,7 +13,7 @@ import type { OxlintConfig } from "vite-plus/lint";
  * concerns (JSX indentation, spacing) are intentionally absent — those belong
  * to {@link "./fmt".fmt}, not the linter.
  *
- * Scoped to `**\/*.{j,t}s?(x)` and enables the browser environment.
+ * Scoped to `**\/*.{js,jsx,ts,tsx}` and enables the browser environment.
  */
 export const react: OxlintConfig = {
   plugins: ["react", "react-perf", "jsx-a11y"],
@@ -22,7 +22,7 @@ export const react: OxlintConfig = {
   },
   overrides: [
     {
-      files: ["**/*.{j,t}s?(x)"],
+      files: ["**/*.{js,jsx,ts,tsx}"],
       rules: {
         // ── react ──────────────────────────────────────────────────────
         "react/rules-of-hooks": "error",
