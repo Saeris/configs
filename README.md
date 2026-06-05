@@ -1,11 +1,11 @@
 <div align="center">
 
-# 📖 Library Template
+# ⚙️ @saeris/configs
 
 [![npm version][npm_badge]][npm]
 [![CI status][ci_badge]][ci]
 
-A minimal repo configured with modern JavaScript tooling to scaffold new libraries
+Shared [Vite+][viteplus] configurations (Oxlint, Oxfmt, and TypeScript)
 
 </div>
 
@@ -14,16 +14,127 @@ A minimal repo configured with modern JavaScript tooling to scaffold new librari
 ## 📦 Installation
 
 ```bash
-vp add library-tempalte
+vp add @saeris/configs
 ```
 
 ## 🔧 Usage
 
-Basic usage notes go here!
+The package exposes two ready-to-use exports — `lint` and `fmt` — that drop
+straight into `defineConfig`:
 
-## 🎛 Configuration
+```ts
+// vite.config.ts
+import { defineConfig } from "vite-plus";
+import { lint, fmt } from "@saeris/configs";
 
-Document configuration settings here!
+export default defineConfig({ lint, fmt });
+```
+
+- **`lint`** — the sensible default Oxlint config for a TypeScript library:
+  `base` + `imports` + `promise` + `typescript` + `type-aware` + `vitest`.
+- **`fmt`** — the shared Oxfmt house style (120 columns, two-space indent,
+  double quotes, semicolons, no trailing commas).
+
+> Oxlint has no stylistic/layout rules — formatting is owned entirely by Oxfmt.
+> Everything the old ESLint "stylistic" ruleset did now lives in `fmt`.
+
+## 🧩 Scoped configs
+
+Each ruleset is also exported on its own so you can compose only what you need.
+Every scoped export is an `OxlintConfig` _fragment_; combine them with
+[`mergeLint`](#-composing-with-mergelint).
+
+| Export       | Plugins                           | Notes                                                    |
+| ------------ | --------------------------------- | -------------------------------------------------------- |
+| `base`       | `oxc`, `unicorn`                  | Vanilla rules, `correctness` category, JS-file overrides |
+| `imports`    | `import`                          | Resolution, ordering, cycle/duplicate detection          |
+| `promise`    | `promise`                         | Async / Promise correctness                              |
+| `typescript` | `typescript`                      | Syntactic TS rules (no type info required)               |
+| `typeAware`  | `typescript`                      | Typed TS rules; sets `options.typeAware`/`typeCheck`     |
+| `vitest`     | `vitest`                          | Test-file rules, scoped to `*.{spec,test}.*`             |
+| `react`      | `react`, `react-perf`, `jsx-a11y` | React + hooks + a11y; **not** in the default `lint`      |
+| `next`       | `nextjs`                          | Next.js rules + route-file default-export exceptions     |
+
+`react` and `next` are framework-specific, so they are deliberately left out of
+the default `lint`. Opt in by composing them yourself:
+
+```ts
+import { defineConfig } from "vite-plus";
+import { mergeLint, lint, react, next } from "@saeris/configs";
+
+// A Next.js app: defaults + React + Next (order matters — see below)
+export default defineConfig({ lint: mergeLint(lint, react, next) });
+```
+
+## 🪢 Composing with `mergeLint`
+
+Because Oxlint uses a single config object (not an array like flat-config
+ESLint), `mergeLint` does a field-aware merge:
+
+- **`plugins`** are unioned and de-duplicated.
+- **`overrides`** are concatenated in argument order — **later overrides win**
+  for files they both match.
+- **`rules`, `categories`, `env`, `settings`, `options`** are shallow-merged;
+  later fragments override earlier keys.
+- **`ignorePatterns`** are concatenated and de-duplicated.
+
+### Building a config from scratch
+
+```ts
+import { defineConfig } from "vite-plus";
+import { mergeLint, base, imports, typescript } from "@saeris/configs";
+
+export default defineConfig({ lint: mergeLint(base, imports, typescript) });
+```
+
+### Overriding the default `lint`
+
+Pass `lint` **first** and your overrides **last**, so the last-writer-wins
+ordering works in your favour. Top-level `rules` apply to every file; to change
+a rule for only some files, append an `overrides` entry instead:
+
+```ts
+import { defineConfig } from "vite-plus";
+import { mergeLint, lint } from "@saeris/configs";
+
+export default defineConfig({
+  lint: mergeLint(lint, {
+    // turn a default rule off everywhere
+    rules: { "no-console": "off" },
+    // ...or only for certain files (appended after the defaults, so it wins)
+    overrides: [{ files: ["scripts/**"], rules: { "no-console": "off" } }]
+  })
+});
+```
+
+The `next` config relies on exactly this mechanism: its route-file override
+(`app/`, `pages/`, `middleware`, `next.config`) disables the
+`import-x/no-default-export` ban that `base`/`imports` set — but only for those
+files, and only because it is composed last.
+
+## 📐 TypeScript config
+
+A base `tsconfig` is published for `extends`:
+
+```jsonc
+// tsconfig.json
+{
+  "extends": "@saeris/configs/tsconfig",
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    // project-local paths live here, not in the shared base
+    "outDir": "./dist",
+    "rootDir": "."
+  }
+}
+```
+
+The base holds only portable `compilerOptions` (strict mode, `ESNext`
+target/module, `bundler` resolution, declaration + source maps, and the
+`node`/`vitest/globals` ambient types). Path- and file-selection options
+(`outDir`, `rootDir`, `include`, `exclude`) are intentionally left to the
+consuming project, since they resolve relative to _your_ config's location.
 
 ## 🤝 Contributing
 
@@ -36,18 +147,14 @@ vp test              # run Vitest
 yarn bumpy add       # create a bump file for your PR
 ```
 
-## 📣 Acknowledgements
-
-Cite any prior art here!
-
 ## 🥂 License
 
 Released under the [MIT license][license] © [Drake Costa][personal-website].
 
-[npm_badge]: https://img.shields.io/npm/v/valimock.svg?style=flat
-[npm]: https://www.npmjs.com/package/valimock
-[ci_badge]: https://github.com/Saeris/valimock/actions/workflows/ci.yml/badge.svg
-[ci]: https://github.com/Saeris/valimock/actions/workflows/ci.yml
+[npm_badge]: https://img.shields.io/npm/v/@saeris/configs?style=flat
+[npm]: https://www.npmjs.com/package/@saeris/configs
+[ci_badge]: https://github.com/Saeris/configs/actions/workflows/ci.yml/badge.svg
+[ci]: https://github.com/Saeris/configs/actions/workflows/ci.yml
 [viteplus]: https://viteplus.dev/
 [bumpy]: https://bumpy.varlock.dev/
 [license]: ./LICENSE.md

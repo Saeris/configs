@@ -1,17 +1,27 @@
 {
-  "name": "library-template",
-  "version": "0.0.0",
-  "description": "A minimal repo configured with modern JavaScript tooling to scaffold new libraries",
-  "keywords": [],
-  "homepage": "https://github.com/Saeris/library-template#readme",
+  "name": "@saeris/configs",
+  "version": "1.0.0",
+  "description": "Shared Vite+ configurations (Oxlint, Oxfmt, and TypeScript)",
+  "keywords": [
+    "vite-plus",
+    "oxlint",
+    "oxfmt",
+    "oxc",
+    "tsconfig",
+    "config",
+    "lint",
+    "format"
+  ],
+  "homepage": "https://github.com/Saeris/configs#readme",
   "license": "MIT",
   "author": "Drake Costa <drake@saeris.gg> (https://saeris.gg)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Saeris/library-template.git"
+    "url": "git+https://github.com/Saeris/configs.git"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "src/tsconfig.base.json"
   ],
   "type": "module",
   "sideEffects": false,
@@ -23,6 +33,7 @@
         "default": "./dist/index.mjs"
       }
     },
+    "./tsconfig": "./src/tsconfig.base.json",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -34,10 +45,10 @@
     "build": "vp pack",
     "check": "vp check",
     "format": "vp check --fix",
-    "test": "vp test --fileParallelism",
-    "typecheck": "vp typecheck",
-    "bench": "vp test bench --run",
-    "profile": "node scripts/profile.mjs"
+    "test": "vp test --fileParallelism"
+  },
+  "peerDependencies": {
+    "vite-plus": "*"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
