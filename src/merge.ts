@@ -48,7 +48,9 @@ export const mergeLint = (...configs: OxlintConfig[]): OxlintConfig =>
     };
 
     if (acc.plugins ?? config.plugins) {
-      merged.plugins = [...new Set([...(acc.plugins ?? []), ...(config.plugins ?? [])])];
+      merged.plugins = [
+        ...new Set([...(acc.plugins ?? []), ...(config.plugins ?? [])])
+      ];
     }
 
     if (acc.categories ?? config.categories) {
@@ -76,11 +78,19 @@ export const mergeLint = (...configs: OxlintConfig[]): OxlintConfig =>
     }
 
     if (acc.overrides ?? config.overrides) {
-      merged.overrides = [...(acc.overrides ?? []), ...(config.overrides ?? [])];
+      merged.overrides = [
+        ...(acc.overrides ?? []),
+        ...(config.overrides ?? [])
+      ];
     }
 
     if (acc.ignorePatterns ?? config.ignorePatterns) {
-      merged.ignorePatterns = [...new Set([...(acc.ignorePatterns ?? []), ...(config.ignorePatterns ?? [])])];
+      merged.ignorePatterns = [
+        ...new Set([
+          ...(acc.ignorePatterns ?? []),
+          ...(config.ignorePatterns ?? [])
+        ])
+      ];
     }
 
     return merged;

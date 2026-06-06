@@ -15,5 +15,5 @@ export const fmt: OxfmtConfig = {
   bracketSpacing: true,
   jsxBracketSameLine: false,
   sortPackageJson: false,
-  ignorePatterns: ["CHANGELOG.md"],
+  ignorePatterns: ["CHANGELOG.md"]
 };

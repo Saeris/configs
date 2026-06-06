@@ -46,7 +46,10 @@ export const imports: OxlintConfig = {
     {
       // Files that conventionally use a default export: build/tool configs and
       // Storybook stories.
-      files: ["**/*.stories.{js,jsx,ts,tsx}", "**/*.config.{js,ts,mjs,mts,cjs,cts}"],
+      files: [
+        "**/*.stories.{js,jsx,ts,tsx}",
+        "**/*.config.{js,ts,mjs,mts,cjs,cts}"
+      ],
       rules: {
         "import/no-default-export": "off",
         "import/no-anonymous-default-export": "off"

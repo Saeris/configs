@@ -34,7 +34,10 @@ export const typescript: OxlintConfig = {
             assertionStyle: "as"
           }
         ],
-        "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+        "@typescript-eslint/consistent-type-definitions": [
+          "error",
+          "interface"
+        ],
         "@typescript-eslint/no-confusing-non-null-assertion": "error",
         "@typescript-eslint/no-inferrable-types": [
           "warn",
@@ -81,7 +84,8 @@ export const typescript: OxlintConfig = {
         "@typescript-eslint/no-require-imports": "warn",
         "@typescript-eslint/no-restricted-types": "off",
         "@typescript-eslint/no-this-alias": "error",
-        "@typescript-eslint/no-unnecessary-parameter-property-assignment": "warn",
+        "@typescript-eslint/no-unnecessary-parameter-property-assignment":
+          "warn",
         "@typescript-eslint/no-unnecessary-type-constraint": "warn",
         "@typescript-eslint/no-unsafe-declaration-merging": "error",
         "@typescript-eslint/no-unsafe-function-type": "error",
