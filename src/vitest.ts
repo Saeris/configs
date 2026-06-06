@@ -4,6 +4,12 @@ import type { OxlintConfig } from "vite-plus/lint";
  * Vitest rules from the `vitest` plugin, scoped to spec/test files. Enforces
  * consistent test authoring (filenames, titles, hook ordering) and steers
  * matcher/assertion usage toward the idiomatic forms.
+ *
+ * Also relaxes a defined set of type-aware `@typescript-eslint/*` rules for
+ * test code — rules that produce noise on idiomatic test patterns (casts,
+ * structural `async` mocks, deliberate `@deprecated` usage) without surfacing
+ * real bugs in tests. Compose this *after* {@link "./type-aware".typeAware} so
+ * the relaxations win for spec files; the default `lint` already does.
  */
 export const vitest: OxlintConfig = {
   overrides: [
@@ -70,7 +76,26 @@ export const vitest: OxlintConfig = {
         "vitest/require-to-throw-message": "off",
         "vitest/require-top-level-describe": "error",
         "vitest/valid-describe-callback": "error",
-        "vitest/valid-expect": "error"
+        "vitest/valid-expect": "error",
+        // Type-aware rules relaxed for test code. These fire on idiomatic test
+        // patterns that aren't bugs in the test context. Because `vitest` is
+        // composed after `typeAware` in the default `lint`, this spec-scoped
+        // override wins over `typeAware` for matching files.
+        //
+        // Off: the violation is the intended test idiom, not a smell —
+        //   - casts to shape mock/faker output or narrow assertions,
+        //   - `async` mocks satisfying an async signature structurally,
+        //   - deliberately exercising `@deprecated` APIs to test the contract.
+        "@typescript-eslint/no-unsafe-type-assertion": "off",
+        "@typescript-eslint/require-await": "off",
+        "@typescript-eslint/no-deprecated": "off",
+        // Warn (not off): still worth surfacing in tests, but not blocking —
+        //   - `no-unnecessary-condition` often flags intentional
+        //     `expect(maybe?.foo)` / failure-mode documentation,
+        //   - `array-type` / `prefer-includes` are purely stylistic here.
+        "@typescript-eslint/no-unnecessary-condition": "warn",
+        "@typescript-eslint/array-type": "warn",
+        "@typescript-eslint/prefer-includes": "warn"
       }
     }
   ]

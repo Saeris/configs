@@ -110,7 +110,7 @@ describe("rule-name prefixes", () => {
     return names;
   };
 
-  const fragments: Array<[string, OxlintConfig]> = [
+  const fragments: [string, OxlintConfig][] = [
     ["base", base],
     ["imports", imports],
     ["promise", promise],
@@ -152,7 +152,7 @@ describe("override file globs", () => {
   const collectGlobs = (config: OxlintConfig): string[] =>
     (config.overrides ?? []).flatMap((override) => override.files);
 
-  const fragments: Array<[string, OxlintConfig]> = [
+  const fragments: [string, OxlintConfig][] = [
     ["base", base],
     ["imports", imports],
     ["typescript", typescript],
@@ -196,5 +196,34 @@ describe("base tsconfig", () => {
 
   it("keeps strict mode on, which the hygiene flags build upon", () => {
     expect(compilerOptions.strict).toBe(true);
+  });
+});
+
+describe("vitest test-file relaxations", () => {
+  const specOverride = vitest.overrides?.find((override) => override.files.some((glob) => glob.includes("spec")));
+  const specRules = specOverride?.rules ?? {};
+
+  // How each override in the merged lint sets require-await, in order. The
+  // relaxations only take effect if vitest's spec override (which sets `off`)
+  // is appended *after* typeAware's TS override (which sets `error`); later
+  // overrides win for matching files. Computed here, outside the assertions.
+  const requireAwaitLevels = (lint.overrides ?? []).map(
+    (override) => override.rules?.["@typescript-eslint/require-await"]
+  );
+
+  it.each([
+    ["@typescript-eslint/no-unsafe-type-assertion", "off"],
+    ["@typescript-eslint/require-await", "off"],
+    ["@typescript-eslint/no-deprecated", "off"],
+    ["@typescript-eslint/no-unnecessary-condition", "warn"],
+    ["@typescript-eslint/array-type", "warn"],
+    ["@typescript-eslint/prefer-includes", "warn"]
+  ] as const)("relaxes %s to %s in spec files", (rule, level) => {
+    expect(specRules[rule]).toBe(level);
+  });
+
+  it("orders vitest after typeAware in the default lint so the relaxations win", () => {
+    expect(requireAwaitLevels).toContain("error");
+    expect(requireAwaitLevels.lastIndexOf("off")).toBeGreaterThan(requireAwaitLevels.indexOf("error"));
   });
 });
