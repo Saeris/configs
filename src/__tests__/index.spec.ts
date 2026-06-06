@@ -1,5 +1,6 @@
 import type { OxlintConfig } from "vite-plus/lint";
 import { describe, expect, it } from "vitest";
+import tsconfig from "../tsconfig.base.json" with { type: "json" };
 import { base, fmt, imports, lint, mergeLint, next, promise, react, typeAware, typescript, vitest } from "../index.js";
 
 describe("mergeLint", () => {
@@ -167,5 +168,33 @@ describe("override file globs", () => {
         /[?@!*+]\(/
       );
     }
+  });
+});
+
+describe("base tsconfig", () => {
+  // The shared base is a static JSON asset (published via the ./tsconfig
+  // export). This contract test guards against a flag being silently dropped
+  // from the base — the realistic regression. (Behavioral per-flag
+  // `tsc --noEmit` fixtures would additionally catch TypeScript-version
+  // semantic drift, but at a much higher cost; add them only if a flag's
+  // meaning is observed to shift across TS releases.)
+  const { compilerOptions } = tsconfig;
+
+  const EXPECTED_HYGIENE_FLAGS = [
+    "noUnusedLocals",
+    "noUnusedParameters",
+    "noFallthroughCasesInSwitch",
+    "noImplicitReturns",
+    "noImplicitOverride",
+    "noErrorTruncation",
+    "verbatimModuleSyntax"
+  ] as const;
+
+  it.each(EXPECTED_HYGIENE_FLAGS)("enables %s", (flag) => {
+    expect(compilerOptions[flag]).toBe(true);
+  });
+
+  it("keeps strict mode on, which the hygiene flags build upon", () => {
+    expect(compilerOptions.strict).toBe(true);
   });
 });

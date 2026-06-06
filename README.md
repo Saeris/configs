@@ -136,11 +136,21 @@ A base `tsconfig` is published for `extends`:
 }
 ```
 
-The base holds only portable `compilerOptions` (strict mode, `ESNext`
-target/module, `bundler` resolution, declaration + source maps, and the
-`node`/`vitest/globals` ambient types). Path- and file-selection options
-(`outDir`, `rootDir`, `include`, `exclude`) are intentionally left to the
-consuming project, since they resolve relative to _your_ config's location.
+The base holds only portable `compilerOptions`: strict mode, `ESNext`
+target/module, `bundler` resolution, declaration + source maps, the
+`node`/`vitest/globals` ambient types, and a set of hygiene flags —
+`noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`,
+`noImplicitReturns`, `noImplicitOverride`, `noErrorTruncation`, and
+`verbatimModuleSyntax`. The last pairs with `isolatedModules` and matches the
+lint config's `consistent-type-imports` rule (both push you toward
+`import type`); it's autofixable if you adopt it on an existing project.
+
+Set any flag to `false` in your project's `compilerOptions` to opt out. Path-
+and file-selection options (`outDir`, `rootDir`, `include`, `exclude`), plus
+project-shaped choices like `lib: ["DOM"]`, `customConditions`, and
+`importHelpers`, are intentionally left to the consuming project — they're
+either path-relative or depend on whether the project targets the browser, is
+a monorepo, or ships a library.
 
 ## 🤝 Contributing
 
