@@ -17,7 +17,7 @@ export const typeAware: OxlintConfig = {
   },
   overrides: [
     {
-      files: ["**/*.?(m|c)ts?(x)"],
+      files: ["**/*.{ts,mts,cts,tsx}"],
       rules: {
         "@typescript-eslint/non-nullable-type-assertion-style": "warn",
         "@typescript-eslint/prefer-find": "error",

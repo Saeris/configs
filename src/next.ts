@@ -1,26 +1,25 @@
 import type { OxlintConfig } from "vite-plus/lint";
 
 /**
- * Next.js config: rules from the `nextjs` plugin, plus an override that relaxes
- * the default-export bans where Next's file conventions require them.
+ * Next.js config: rules from the `nextjs` plugin (fonts, scripts, `<Image>`,
+ * document/head conventions).
  *
- * Intended to be composed *after* {@link "./react".react} (Next is React), and
- * after {@link "./base".base}/{@link "./imports".imports} so the route-file
- * override below wins over their `import-x/no-default-export` warnings:
+ * Intended to be composed *after* {@link "./react".react}, since Next is React:
  *
  * ```ts
  * mergeLint(base, imports, promise, typescript, react, next)
  * ```
  *
- * Route files (`app/` and `pages/` entries, `middleware`, `next.config`) must
- * be default exports by convention, so the override disables the export bans
- * there only — they stay on everywhere else.
+ * The default-export exception for Next route files (`app/`, `pages/`,
+ * `middleware`, `next.config`) lives in {@link "./imports".imports}, not here —
+ * it's an import-rule concern that applies whether or not these Next-specific
+ * plugin rules are in use.
  */
 export const next: OxlintConfig = {
   plugins: ["nextjs"],
   overrides: [
     {
-      files: ["**/*.{j,t}s?(x)"],
+      files: ["**/*.{js,jsx,ts,tsx}"],
       rules: {
         "nextjs/google-font-display": "error",
         "nextjs/google-font-preconnect": "error",
@@ -43,18 +42,6 @@ export const next: OxlintConfig = {
         "nextjs/no-title-in-document-head": "error",
         "nextjs/no-typos": "warn",
         "nextjs/no-unwanted-polyfillio": "error"
-      }
-    },
-    {
-      files: [
-        "**/app/**/*.{j,t}s?(x)",
-        "**/pages/**/*.{j,t}s?(x)",
-        "**/middleware.{j,t}s?(x)",
-        "**/next.config.{js,ts,mjs,mts,cjs,cts}"
-      ],
-      rules: {
-        "import-x/no-default-export": "off",
-        "import-x/no-anonymous-default-export": "off"
       }
     }
   ]

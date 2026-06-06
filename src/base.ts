@@ -4,7 +4,7 @@ import type { OxlintConfig } from "vite-plus/lint";
  * Base config: vanilla ESLint-equivalent rules from the `oxc` and `unicorn`
  * plugins, plus the global `correctness` category and built-in environment.
  *
- * The bulk of the rules live in a `**\/*.?(m|c)js?(x)` override so they target
+ * The bulk of the rules live in a `**\/*.{js,mjs,cjs,jsx}` override so they target
  * JavaScript files; TypeScript files turn many of them off in favour of the
  * typed equivalents (see {@link "./typescript".typescript}).
  */
@@ -18,7 +18,7 @@ export const base: OxlintConfig = {
   },
   overrides: [
     {
-      files: ["**/*.?(m|c)js?(x)"],
+      files: ["**/*.{js,mjs,cjs,jsx}"],
       rules: {
         "array-callback-return": [
           "warn",
@@ -241,17 +241,10 @@ export const base: OxlintConfig = {
       }
     },
     {
-      files: ["**/*.{spec,test}.{j,t}s?(x)"],
+      files: ["**/*.{spec,test}.{js,jsx,ts,tsx}"],
       rules: {
         "no-console": "off",
         "no-undefined": "off"
-      }
-    },
-    {
-      files: ["*.stories.{j,t}s?(x)", "*.config.{js,ts,mjs,mts,cjs,cts}"],
-      rules: {
-        "import-x/no-default-export": "off",
-        "import-x/no-anonymous-default-export": "off"
       }
     }
   ]

@@ -8,7 +8,7 @@ import type { OxlintConfig } from "vite-plus/lint";
 export const vitest: OxlintConfig = {
   overrides: [
     {
-      files: ["**/*.{spec,test}.{j,t}s?(x)"],
+      files: ["**/*.{spec,test}.{js,jsx,ts,tsx}"],
       plugins: ["vitest"],
       rules: {
         "vitest/consistent-test-filename": "off",

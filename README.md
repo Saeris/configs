@@ -44,16 +44,16 @@ Each ruleset is also exported on its own so you can compose only what you need.
 Every scoped export is an `OxlintConfig` _fragment_; combine them with
 [`mergeLint`](#-composing-with-mergelint).
 
-| Export       | Plugins                           | Notes                                                    |
-| ------------ | --------------------------------- | -------------------------------------------------------- |
-| `base`       | `oxc`, `unicorn`                  | Vanilla rules, `correctness` category, JS-file overrides |
-| `imports`    | `import`                          | Resolution, ordering, cycle/duplicate detection          |
-| `promise`    | `promise`                         | Async / Promise correctness                              |
-| `typescript` | `typescript`                      | Syntactic TS rules (no type info required)               |
-| `typeAware`  | `typescript`                      | Typed TS rules; sets `options.typeAware`/`typeCheck`     |
-| `vitest`     | `vitest`                          | Test-file rules, scoped to `*.{spec,test}.*`             |
-| `react`      | `react`, `react-perf`, `jsx-a11y` | React + hooks + a11y; **not** in the default `lint`      |
-| `next`       | `nextjs`                          | Next.js rules + route-file default-export exceptions     |
+| Export       | Plugins                           | Notes                                                                     |
+| ------------ | --------------------------------- | ------------------------------------------------------------------------- |
+| `base`       | `oxc`, `unicorn`                  | Vanilla rules, `correctness` category, JS-file overrides                  |
+| `imports`    | `import`                          | Import hygiene + default-export exceptions (config, stories, Next routes) |
+| `promise`    | `promise`                         | Async / Promise correctness                                               |
+| `typescript` | `typescript`                      | Syntactic TS rules (no type info required)                                |
+| `typeAware`  | `typescript`                      | Typed TS rules; sets `options.typeAware`/`typeCheck`                      |
+| `vitest`     | `vitest`                          | Test-file rules, scoped to `*.{spec,test}.*`                              |
+| `react`      | `react`, `react-perf`, `jsx-a11y` | React + hooks + a11y; **not** in the default `lint`                       |
+| `next`       | `nextjs`                          | Next.js plugin rules (fonts, scripts, `<Image>`, head)                    |
 
 `react` and `next` are framework-specific, so they are deliberately left out of
 the default `lint`. Opt in by composing them yourself:
@@ -107,10 +107,16 @@ export default defineConfig({
 });
 ```
 
-The `next` config relies on exactly this mechanism: its route-file override
-(`app/`, `pages/`, `middleware`, `next.config`) disables the
-`import-x/no-default-export` ban that `base`/`imports` set — but only for those
-files, and only because it is composed last.
+The `imports` config uses this mechanism for known file conventions: its
+route-file override (`app/`, `pages/`, `middleware`, `next.config`) and its
+config/stories override disable the `import/no-default-export` ban for files
+that conventionally default-export — but only those files. These exceptions
+live in `imports` (not the `next` scope) so they apply whether or not you pull
+in the framework-specific rules.
+
+> Import rules use Oxlint's `import/` prefix, not `import-x/`. Oxlint registers
+> its native import plugin under `import/`; the `import-x/` prefix is silently
+> ignored. Confirm rule names with `vp lint --rules`.
 
 ## 📐 TypeScript config
 
