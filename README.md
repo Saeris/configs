@@ -51,7 +51,7 @@ Every scoped export is an `OxlintConfig` _fragment_; combine them with
 | `promise`    | `promise`                         | Async / Promise correctness                                               |
 | `typescript` | `typescript`                      | Syntactic TS rules (no type info required)                                |
 | `typeAware`  | `typescript`                      | Typed TS rules; sets `options.typeAware`/`typeCheck`                      |
-| `vitest`     | `vitest`                          | Test-file rules, scoped to `*.{spec,test}.*`                              |
+| `vitest`     | `vitest`                          | Test-file rules + type-aware relaxations, scoped to `*.{spec,test}.*`     |
 | `react`      | `react`, `react-perf`, `jsx-a11y` | React + hooks + a11y; **not** in the default `lint`                       |
 | `next`       | `nextjs`                          | Next.js plugin rules (fonts, scripts, `<Image>`, head)                    |
 
