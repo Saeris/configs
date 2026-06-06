@@ -2,6 +2,12 @@
 
 
 
+
+## 1.3.0
+<sub>2026-06-06</sub>
+
+- [#8](https://github.com/Saeris/configs/pull/8)  *(minor)* Thanks [@Saeris](https://github.com/Saeris)! - Reset print width to 80 from 120 to better support IDE format on save behavior and remove broken vitest globals due to resolution errors.
+
 ## 1.2.0
 <sub>2026-06-06</sub>
 
