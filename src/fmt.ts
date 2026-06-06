@@ -2,11 +2,11 @@ import type { OxfmtConfig } from "vite-plus/fmt";
 
 /**
  * Default formatting config for Oxfmt. Opinionated defaults shared across
- * projects: 120-column width, two-space indent, double quotes, semicolons,
+ * projects: 80-column width, two-space indent, double quotes, semicolons,
  * no trailing commas.
  */
 export const fmt: OxfmtConfig = {
-  printWidth: 120,
+  printWidth: 80,
   tabWidth: 2,
   useTabs: false,
   semi: true,
@@ -15,5 +15,5 @@ export const fmt: OxfmtConfig = {
   bracketSpacing: true,
   jsxBracketSameLine: false,
   sortPackageJson: false,
-  ignorePatterns: ["CHANGELOG.md"]
+  ignorePatterns: ["CHANGELOG.md"],
 };
