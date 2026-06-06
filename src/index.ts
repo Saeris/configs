@@ -44,4 +44,11 @@ export { fmt } from "./fmt.js";
  * export default defineConfig({ lint: mergeLint(base, typescript, react) });
  * ```
  */
-export const lint: OxlintConfig = mergeLint(base, imports, promise, typescript, typeAware, vitest);
+export const lint: OxlintConfig = mergeLint(
+  base,
+  imports,
+  promise,
+  typescript,
+  typeAware,
+  vitest
+);
