@@ -67,10 +67,14 @@ export default defineConfig({ lint: mergeLint(lint, react, next) });
 ```
 
 > **Test files** get relaxed type-aware rules (casts, structural `async` mocks,
-> `@deprecated` usage, void-schema assertions, no explicit return types, …). The
-> scope is `TEST_FILES` — spec/test files, Vitest `*.bench.*` files, and anything
-> under a `__tests__/` directory (helpers/fixtures). `TEST_FILES` is exported, so
-> you can reuse the exact same set in your own overrides.
+> `@deprecated` usage, void-schema assertions, no explicit return types, …) plus
+> relaxed test-authoring rules that fight idiomatic patterns — including
+> conditionals in tests (`no-conditional-in-test`, `no-conditional-expect`),
+> since property-based suites (fast-check et al.) branch on generated input
+> inside the property callback. The scope is `TEST_FILES` — spec/test files,
+> Vitest `*.bench.*` files, and anything under a `__tests__/` directory
+> (helpers/fixtures). `TEST_FILES` is exported, so you can reuse the exact same
+> set in your own overrides.
 >
 > **Node globals** (`process`, `__dirname`, …) and `no-console` are enabled only
 > for Node-shaped files — `scripts/**`, standalone `*.{mjs,cjs}` tooling, and

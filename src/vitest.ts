@@ -32,8 +32,13 @@ export const vitest: OxlintConfig = {
         "vitest/max-nested-describe": "off",
         "vitest/no-alias-methods": "warn",
         "vitest/no-commented-out-tests": "warn",
-        "vitest/no-conditional-expect": "warn",
-        "vitest/no-conditional-in-test": "warn",
+        // Off, not warn: property-based tests (fast-check et al.) branch on
+        // generated input inside the property callback — the conditional that
+        // adapts to randomized data IS the test, not noise to split into cases.
+        // The rules' "split into deterministic cases" premise is example-based
+        // only, so they fight a first-class testing pattern this config endorses.
+        "vitest/no-conditional-expect": "off",
+        "vitest/no-conditional-in-test": "off",
         "vitest/no-conditional-tests": "warn",
         "vitest/no-disabled-tests": "warn",
         "vitest/no-duplicate-hooks": "error",
