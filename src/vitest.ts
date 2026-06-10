@@ -1,20 +1,23 @@
 import type { OxlintConfig } from "vite-plus/lint";
+import { TEST_FILES } from "./globs.js";
 
 /**
- * Vitest rules from the `vitest` plugin, scoped to spec/test files. Enforces
+ * Vitest rules from the `vitest` plugin, scoped to test code ({@link
+ * "./globs".TEST_FILES}: spec/test, bench, and `__tests__/` files). Enforces
  * consistent test authoring (filenames, titles, hook ordering) and steers
  * matcher/assertion usage toward the idiomatic forms.
  *
  * Also relaxes a defined set of type-aware `@typescript-eslint/*` rules for
  * test code — rules that produce noise on idiomatic test patterns (casts,
- * structural `async` mocks, deliberate `@deprecated` usage) without surfacing
- * real bugs in tests. Compose this *after* {@link "./type-aware".typeAware} so
- * the relaxations win for spec files; the default `lint` already does.
+ * structural `async` mocks, deliberate `@deprecated` usage, void-schema
+ * assertions, intentionally-mixed enum fixtures) without surfacing real bugs in
+ * tests. Compose this *after* {@link "./type-aware".typeAware} so the
+ * relaxations win for test files; the default `lint` already does.
  */
 export const vitest: OxlintConfig = {
   overrides: [
     {
-      files: ["**/*.{spec,test}.{js,jsx,ts,tsx}"],
+      files: TEST_FILES,
       plugins: ["vitest"],
       rules: {
         "vitest/consistent-test-filename": "off",
@@ -85,15 +88,18 @@ export const vitest: OxlintConfig = {
         // Off: the violation is the intended test idiom, not a smell —
         //   - casts to shape mock/faker output or narrow assertions,
         //   - `async` mocks satisfying an async signature structurally,
-        //   - deliberately exercising `@deprecated` APIs to test the contract.
+        //   - deliberately exercising `@deprecated` APIs to test the contract,
+        //   - asserting on void-schema output (`expect(mock(v.void_()))`),
+        //   - intentionally-mixed enum fixtures that exist to test that case,
+        //   - defensive `if (!x) throw` guards around `T | undefined` in tests.
         "@typescript-eslint/no-unsafe-type-assertion": "off",
         "@typescript-eslint/require-await": "off",
         "@typescript-eslint/no-deprecated": "off",
+        "@typescript-eslint/no-confusing-void-expression": "off",
+        "@typescript-eslint/no-mixed-enums": "off",
+        "@typescript-eslint/no-unnecessary-condition": "off",
         // Warn (not off): still worth surfacing in tests, but not blocking —
-        //   - `no-unnecessary-condition` often flags intentional
-        //     `expect(maybe?.foo)` / failure-mode documentation,
-        //   - `array-type` / `prefer-includes` are purely stylistic here.
-        "@typescript-eslint/no-unnecessary-condition": "warn",
+        //   `array-type` / `prefer-includes` are purely stylistic here.
         "@typescript-eslint/array-type": "warn",
         "@typescript-eslint/prefer-includes": "warn"
       }
