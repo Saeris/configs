@@ -68,7 +68,8 @@ describe("default exports", () => {
       "unicorn",
       "import",
       "promise",
-      "typescript"
+      "typescript",
+      "vitest"
     ]);
     expect(lint.options).toStrictEqual({ typeAware: true, typeCheck: true });
   });
@@ -309,4 +310,40 @@ it("p", () => {
       expect(fired(diagnostics, rule, "prop.spec.ts")).toBe(false);
     }
   );
+});
+
+describe("vitest plugin scoping (behavioral)", () => {
+  // A test with no expect() call trips expect-expect. These guard the fix for
+  // the consumer-override bug: the vitest plugin is enabled at the top level so
+  // a consumer's own override can disable a vitest rule, but the rules are kept
+  // off outside test files so the global plugin doesn't leak onto source.
+  const noExpect = `import { it } from "vitest";\nit("t", () => {\n  const x = 1;\n});\n`;
+
+  it("does not fire vitest rules on non-test source", () => {
+    // expect-expect is on by default once the plugin is active; it must be
+    // suppressed for src so enabling the plugin globally doesn't leak.
+    const diagnostics = lintFixture(vitest, { "app.ts": noExpect });
+    expect(fired(diagnostics, "expect-expect", "app.ts")).toBe(false);
+  });
+
+  it("fires vitest rules on test files", () => {
+    const diagnostics = lintFixture(vitest, { "app.spec.ts": noExpect });
+    expect(fired(diagnostics, "expect-expect", "app.spec.ts")).toBe(true);
+  });
+
+  it("lets a consumer override disable a vitest rule on test files", () => {
+    // The bug: with the plugin enabled only inside the preset's override, a
+    // consumer override couldn't disable the rule (no plugin in its scope), so
+    // this fired despite the later `off`. Top-level plugin fixes it.
+    const consumer = mergeLint(vitest, {
+      overrides: [
+        {
+          files: ["**/*.spec.{ts,tsx}"],
+          rules: { "vitest/expect-expect": "off" }
+        }
+      ]
+    });
+    const diagnostics = lintFixture(consumer, { "app.spec.ts": noExpect });
+    expect(fired(diagnostics, "expect-expect", "app.spec.ts")).toBe(false);
+  });
 });

@@ -15,10 +15,26 @@ import { TEST_FILES } from "./globs.js";
  * relaxations win for test files; the default `lint` already does.
  */
 export const vitest: OxlintConfig = {
+  // The `vitest` plugin is enabled at the top level (like every other fragment),
+  // not inside the override. oxlint scopes plugin enablement per-override: a
+  // rule only takes effect in an override where the plugin is active. If the
+  // plugin lived only in this override, a *consumer's* override couldn't turn a
+  // vitest rule off — their override wouldn't have the plugin in scope — which
+  // silently breaks the documented last-wins precedence for any consumer trying
+  // to relax a vitest rule on a subset of test files.
+  plugins: ["vitest"],
+  // Enabling the plugin globally activates its correctness-category rules
+  // (`expect-expect`, `no-focused-tests`) for *all* files. Turn those off at the
+  // top level so they don't fire on non-test source; the test-file override
+  // below re-enables the full rule set. Net: plugin available everywhere (so
+  // consumer overrides work), rules scoped to test files (no src leakage).
+  rules: {
+    "vitest/expect-expect": "off",
+    "vitest/no-focused-tests": "off"
+  },
   overrides: [
     {
       files: TEST_FILES,
-      plugins: ["vitest"],
       rules: {
         "vitest/consistent-test-filename": "off",
         "vitest/consistent-test-it": "error",
