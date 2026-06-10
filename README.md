@@ -46,7 +46,7 @@ Every scoped export is an `OxlintConfig` _fragment_; combine them with
 
 | Export       | Plugins                           | Notes                                                                     |
 | ------------ | --------------------------------- | ------------------------------------------------------------------------- |
-| `base`       | `oxc`, `unicorn`                  | Vanilla rules, `correctness` category, JS-file overrides                  |
+| `base`       | `oxc`, `unicorn`                  | Vanilla rules, `correctness` category, JS-file + Node-script overrides    |
 | `imports`    | `import`                          | Import hygiene + default-export exceptions (config, stories, Next routes) |
 | `promise`    | `promise`                         | Async / Promise correctness                                               |
 | `typescript` | `typescript`                      | Syntactic TS rules (no type info required)                                |
@@ -65,6 +65,13 @@ import { mergeLint, lint, react, next } from "@saeris/configs";
 // A Next.js app: defaults + React + Next (order matters — see below)
 export default defineConfig({ lint: mergeLint(lint, react, next) });
 ```
+
+> **Node globals** (`process`, `__dirname`, …) and `no-console` are enabled only
+> for Node-shaped files — `scripts/**`, standalone `*.{mjs,cjs}` tooling, and
+> config files — not globally. This keeps `src/**` honest: `no-undef` still
+> flags an accidental `process` in browser/isomorphic library code. A
+> Node-targeted library opts in with its own top-level `env: { node: true }`
+> (oxlint env is additive, so it coexists with the `browser` env from `react`).
 
 ## 🪢 Composing with `mergeLint`
 

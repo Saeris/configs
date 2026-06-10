@@ -7,6 +7,12 @@ import type { OxlintConfig } from "vite-plus/lint";
  * The bulk of the rules live in a `**\/*.{js,mjs,cjs,jsx}` override so they target
  * JavaScript files; TypeScript files turn many of them off in favour of the
  * typed equivalents (see {@link "./typescript".typescript}).
+ *
+ * Node globals (`process`, `__dirname`, etc.) and `no-console` relaxation are
+ * scoped to Node-shaped files — `scripts/**`, `*.{mjs,cjs}` tooling, and config
+ * files — rather than enabled globally. This keeps `src/**` honest: `no-undef`
+ * still flags an accidental `process` in browser/isomorphic library code. A
+ * Node-targeted library opts into `env: { node: true }` itself.
  */
 export const base: OxlintConfig = {
   plugins: ["oxc", "unicorn"],
@@ -245,6 +251,24 @@ export const base: OxlintConfig = {
       rules: {
         "no-console": "off",
         "no-undefined": "off"
+      }
+    },
+    {
+      // Node-shaped files: build/tooling scripts, standalone `.mjs`/`.cjs`
+      // tooling, and config files. These run in Node, so enable Node globals
+      // (`process`, `__dirname`, `URL`, …) to stop `no-undef` from firing, and
+      // allow `console` since logging is the point of a script. Scoped here, so
+      // `src/**` keeps `builtin`-only globals and the `no-console: warn` default.
+      files: [
+        "scripts/**",
+        "**/*.{mjs,cjs}",
+        "**/*.config.{js,ts,mjs,mts,cjs,cts}"
+      ],
+      env: {
+        node: true
+      },
+      rules: {
+        "no-console": "off"
       }
     }
   ]
