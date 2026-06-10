@@ -1,4 +1,5 @@
 import type { OxlintConfig } from "vite-plus/lint";
+import { TEST_FILES } from "./globs.js";
 
 /**
  * TypeScript rules from the `typescript` plugin that do **not** require type
@@ -9,7 +10,8 @@ import type { OxlintConfig } from "vite-plus/lint";
  * - `**\/*.{ts,mts,cts,tsx}` enables the typed-flavoured rules.
  * - `**\/*.{ts,tsx}` disables the base ESLint rules that TypeScript supersedes
  *   (the `@typescript-eslint/*` variants take over).
- * - `**\/*.{spec,test}.{js,jsx,ts,tsx}` relaxes explicit return types in tests.
+ * - {@link "./globs".TEST_FILES} relaxes the explicit return-type rules
+ *   (`explicit-function-return-type`, `explicit-module-boundary-types`) in tests.
  */
 export const typescript: OxlintConfig = {
   plugins: ["typescript"],
@@ -163,9 +165,14 @@ export const typescript: OxlintConfig = {
       }
     },
     {
-      files: ["**/*.{spec,test}.{js,jsx,ts,tsx}"],
+      files: TEST_FILES,
       rules: {
-        "@typescript-eslint/explicit-function-return-type": "off"
+        // Tests don't need explicit return-type annotations. Relax both sibling
+        // rules together — `explicit-module-boundary-types` is the
+        // exported-function variant and would otherwise still fire on the
+        // `export const`-style helpers/benches that `TEST_FILES` now covers.
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off"
       }
     }
   ]

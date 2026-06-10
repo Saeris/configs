@@ -51,7 +51,7 @@ Every scoped export is an `OxlintConfig` _fragment_; combine them with
 | `promise`    | `promise`                         | Async / Promise correctness                                               |
 | `typescript` | `typescript`                      | Syntactic TS rules (no type info required)                                |
 | `typeAware`  | `typescript`                      | Typed TS rules; sets `options.typeAware`/`typeCheck`                      |
-| `vitest`     | `vitest`                          | Test-file rules + type-aware relaxations, scoped to `*.{spec,test}.*`     |
+| `vitest`     | `vitest`                          | Test-file rules + type-aware relaxations, scoped to `TEST_FILES`          |
 | `react`      | `react`, `react-perf`, `jsx-a11y` | React + hooks + a11y; **not** in the default `lint`                       |
 | `next`       | `nextjs`                          | Next.js plugin rules (fonts, scripts, `<Image>`, head)                    |
 
@@ -66,6 +66,12 @@ import { mergeLint, lint, react, next } from "@saeris/configs";
 export default defineConfig({ lint: mergeLint(lint, react, next) });
 ```
 
+> **Test files** get relaxed type-aware rules (casts, structural `async` mocks,
+> `@deprecated` usage, void-schema assertions, no explicit return types, …). The
+> scope is `TEST_FILES` — spec/test files, Vitest `*.bench.*` files, and anything
+> under a `__tests__/` directory (helpers/fixtures). `TEST_FILES` is exported, so
+> you can reuse the exact same set in your own overrides.
+>
 > **Node globals** (`process`, `__dirname`, …) and `no-console` are enabled only
 > for Node-shaped files — `scripts/**`, standalone `*.{mjs,cjs}` tooling, and
 > config files — not globally. This keeps `src/**` honest: `no-undef` still

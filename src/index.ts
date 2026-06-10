@@ -17,6 +17,7 @@ export { vitest } from "./vitest.js";
 export { react } from "./react.js";
 export { next } from "./next.js";
 export { fmt } from "./fmt.js";
+export { TEST_FILES } from "./globs.js";
 
 /**
  * The sensible default lint config for most TypeScript library projects:

@@ -13,6 +13,7 @@ import {
   typescript,
   vitest
 } from "../index.js";
+import { fired, lintFixture } from "./lintFixture.js";
 
 describe("mergeLint", () => {
   it("unions and de-duplicates plugins so composing fragments never drops a base plugin", () => {
@@ -207,92 +208,80 @@ describe("override file globs", () => {
 });
 
 describe("base tsconfig", () => {
-  // The shared base is a static JSON asset (published via the ./tsconfig
-  // export). This contract test guards against a flag being silently dropped
-  // from the base — the realistic regression. (Behavioral per-flag
-  // `tsc --noEmit` fixtures would additionally catch TypeScript-version
-  // semantic drift, but at a much higher cost; add them only if a flag's
-  // meaning is observed to shift across TS releases.)
-  const { compilerOptions } = tsconfig;
-
-  const EXPECTED_HYGIENE_FLAGS = [
-    "noUnusedLocals",
-    "noUnusedParameters",
-    "noFallthroughCasesInSwitch",
-    "noImplicitReturns",
-    "noImplicitOverride",
-    "noErrorTruncation",
-    "verbatimModuleSyntax"
-  ] as const;
-
-  it.each(EXPECTED_HYGIENE_FLAGS)("enables %s", (flag) => {
-    expect(compilerOptions[flag]).toBe(true);
-  });
-
-  it("keeps strict mode on, which the hygiene flags build upon", () => {
-    expect(compilerOptions.strict).toBe(true);
+  // Static JSON asset; no behavior to run. One guard against the realistic
+  // regression — a hygiene flag silently dropped from the published base.
+  it("keeps strict mode and the hygiene flags on", () => {
+    expect(tsconfig.compilerOptions).toMatchObject({
+      strict: true,
+      noUnusedLocals: true,
+      noUnusedParameters: true,
+      noFallthroughCasesInSwitch: true,
+      noImplicitReturns: true,
+      noImplicitOverride: true,
+      verbatimModuleSyntax: true
+    });
   });
 });
 
-describe("vitest test-file relaxations", () => {
-  const specOverride = vitest.overrides?.find((override) =>
-    override.files.some((glob) => glob.includes("spec"))
-  );
-  const specRules = specOverride?.rules ?? {};
-
-  // How each override in the merged lint sets require-await, in order. The
-  // relaxations only take effect if vitest's spec override (which sets `off`)
-  // is appended *after* typeAware's TS override (which sets `error`); later
-  // overrides win for matching files. Computed here, outside the assertions.
-  const requireAwaitLevels = (lint.overrides ?? []).map(
-    (override) => override.rules?.["@typescript-eslint/require-await"]
-  );
-
-  it.each([
-    ["@typescript-eslint/no-unsafe-type-assertion", "off"],
-    ["@typescript-eslint/require-await", "off"],
-    ["@typescript-eslint/no-deprecated", "off"],
-    ["@typescript-eslint/no-unnecessary-condition", "warn"],
-    ["@typescript-eslint/array-type", "warn"],
-    ["@typescript-eslint/prefer-includes", "warn"]
-  ] as const)("relaxes %s to %s in spec files", (rule, level) => {
-    expect(specRules[rule]).toBe(level);
+// Behavioral tests: run oxlint against fixtures through the real resolver, so a
+// rule landing on the wrong files (scoping) or an override that loses because
+// of ordering (precedence) actually fails the test — unlike asserting config
+// literals, which only restates the source. These use syntactic rules and
+// compose without `typeAware`, so fixtures stay program-free (no @types/node or
+// tsconfig coupling) and isolate the override behaviour under test.
+describe("test-file scoping + override ordering (behavioral)", () => {
+  // typescript sets the explicit return-type rules to `warn`, then its own test
+  // override sets them `off`. Linting the typescript fragment alone exercises
+  // that the later test-scoped override wins, and that the broadened TEST_FILES
+  // globs (spec + bench + __tests__) all match.
+  const diagnostics = lintFixture(typescript, {
+    "src/app.ts": `export const f = () => 1;\n`,
+    "src/app.spec.ts": `export const f = () => 1;\n`,
+    "perf.bench.ts": `export const f = () => 1;\n`,
+    "src/__tests__/helpers/cap.ts": `export const f = () => 1;\n`
   });
 
-  it("orders vitest after typeAware in the default lint so the relaxations win", () => {
-    expect(requireAwaitLevels).toContain("error");
-    expect(requireAwaitLevels.lastIndexOf("off")).toBeGreaterThan(
-      requireAwaitLevels.indexOf("error")
-    );
+  it("fires both explicit return-type rules in src", () => {
+    expect(
+      fired(diagnostics, "explicit-function-return-type", "src/app.ts")
+    ).toBe(true);
+    // Sibling rule (exported-function variant) must fire too.
+    expect(
+      fired(diagnostics, "explicit-module-boundary-types", "src/app.ts")
+    ).toBe(true);
   });
+
+  it.each(["app.spec.ts", "perf.bench.ts", "helpers/cap.ts"])(
+    "relaxes both explicit return-type rules for %s",
+    (testFile) => {
+      expect(
+        fired(diagnostics, "explicit-function-return-type", testFile)
+      ).toBe(false);
+      expect(
+        fired(diagnostics, "explicit-module-boundary-types", testFile)
+      ).toBe(false);
+    }
+  );
 });
 
-describe("node-shaped files", () => {
-  const nodeOverride = base.overrides?.find((override) =>
-    override.files.some((glob) => glob.includes("scripts/"))
+describe("node-shaped files (behavioral)", () => {
+  // base alone (no typeAware), so an undefined `process` surfaces as the
+  // no-undef LINT rule rather than a TS-program error.
+  const diagnostics = lintFixture(base, {
+    "src/app.js": `export const x = process.env.NODE_ENV;\n`,
+    "scripts/run.mjs": `console.log(process.argv);\n`,
+    "tool.cjs": `console.log(process.cwd());\n`
+  });
+
+  it("leaves src on builtin-only globals (no-undef fires on process)", () => {
+    expect(fired(diagnostics, "no-undef", "src/app.js")).toBe(true);
+  });
+
+  it.each(["scripts/run.mjs", "tool.cjs"])(
+    "enables Node env + allows console for %s",
+    (nodeFile) => {
+      expect(fired(diagnostics, "no-undef", nodeFile)).toBe(false);
+      expect(fired(diagnostics, "no-console", nodeFile)).toBe(false);
+    }
   );
-  const nodeGlobs = nodeOverride?.files ?? [];
-
-  it("enables the node env for scripts/tooling/config files", () => {
-    // Node globals (process, __dirname, URL) must be on for these files or
-    // no-undef fires on every script. Verified empirically that override-level
-    // env scopes correctly (oxlint applies it only to matching files).
-    expect(nodeOverride?.env?.node).toBe(true);
-  });
-
-  it("allows console in node-shaped files", () => {
-    expect(nodeOverride?.rules?.["no-console"]).toBe("off");
-  });
-
-  it("scopes node globals rather than enabling them globally", () => {
-    // The base env stays builtin-only so src/** keeps no-undef honest for
-    // browser/isomorphic code; Node globals come from the scoped override only.
-    expect(base.env).toStrictEqual({ builtin: true });
-  });
-
-  it("covers scripts, standalone .mjs/.cjs, and config files", () => {
-    expect(nodeGlobs).toContain("scripts/**");
-    expect(nodeGlobs).toContain("**/*.{mjs,cjs}");
-    expect(nodeGlobs).toContain("**/*.config.{js,ts,mjs,mts,cjs,cts}");
-  });
 });

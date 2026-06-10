@@ -1,4 +1,5 @@
 import type { OxlintConfig } from "vite-plus/lint";
+import { TEST_FILES } from "./globs.js";
 
 /**
  * Base config: vanilla ESLint-equivalent rules from the `oxc` and `unicorn`
@@ -247,7 +248,7 @@ export const base: OxlintConfig = {
       }
     },
     {
-      files: ["**/*.{spec,test}.{js,jsx,ts,tsx}"],
+      files: TEST_FILES,
       rules: {
         "no-console": "off",
         "no-undefined": "off"
