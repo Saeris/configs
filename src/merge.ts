@@ -10,7 +10,11 @@ import type { OxlintConfig } from "vite-plus/lint";
  *   set whenever `plugins` is present, so a naive merge would drop plugins
  *   declared by earlier fragments.
  * - `overrides` are concatenated in argument order. Later overrides win for
- *   files they both match, so order is significant.
+ *   files they both match, so order is significant. Note: an override can only
+ *   change a *plugin* rule (e.g. `vitest/*`, `react/*`) for files where that
+ *   plugin is enabled — oxlint scopes plugin activation per-override. Every
+ *   fragment here enables its plugin at the top level, so a consumer override
+ *   can freely disable/relax any rule without re-declaring `plugins`.
  * - `categories`, `env`, `globals`, `rules`, `settings`, and `options` are
  *   shallow-merged, with later fragments overriding earlier keys.
  * - `ignorePatterns` are concatenated and de-duplicated.
