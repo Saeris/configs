@@ -285,3 +285,28 @@ describe("node-shaped files (behavioral)", () => {
     }
   );
 });
+
+describe("property-based test relaxations (behavioral)", () => {
+  // The vitest fragment must silence the conditional rules on test files so
+  // property-based suites (fast-check) can branch on generated input inside the
+  // property callback — the conditional adapting to randomized data is the test.
+  const diagnostics = lintFixture(vitest, {
+    "prop.spec.ts": `import { it, expect } from "vitest";
+it("p", () => {
+  const xs: number[] = [];
+  if (Math.random() > 0.5) {
+    xs.push(1);
+    expect(xs).toContain(1);
+  }
+  expect(xs).toBeDefined();
+});
+`
+  });
+
+  it.each(["no-conditional-in-test", "no-conditional-expect"])(
+    "relaxes vitest/%s for property-based test code",
+    (rule) => {
+      expect(fired(diagnostics, rule, "prop.spec.ts")).toBe(false);
+    }
+  );
+});
