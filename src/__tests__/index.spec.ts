@@ -266,3 +266,33 @@ describe("vitest test-file relaxations", () => {
     );
   });
 });
+
+describe("node-shaped files", () => {
+  const nodeOverride = base.overrides?.find((override) =>
+    override.files.some((glob) => glob.includes("scripts/"))
+  );
+  const nodeGlobs = nodeOverride?.files ?? [];
+
+  it("enables the node env for scripts/tooling/config files", () => {
+    // Node globals (process, __dirname, URL) must be on for these files or
+    // no-undef fires on every script. Verified empirically that override-level
+    // env scopes correctly (oxlint applies it only to matching files).
+    expect(nodeOverride?.env?.node).toBe(true);
+  });
+
+  it("allows console in node-shaped files", () => {
+    expect(nodeOverride?.rules?.["no-console"]).toBe("off");
+  });
+
+  it("scopes node globals rather than enabling them globally", () => {
+    // The base env stays builtin-only so src/** keeps no-undef honest for
+    // browser/isomorphic code; Node globals come from the scoped override only.
+    expect(base.env).toStrictEqual({ builtin: true });
+  });
+
+  it("covers scripts, standalone .mjs/.cjs, and config files", () => {
+    expect(nodeGlobs).toContain("scripts/**");
+    expect(nodeGlobs).toContain("**/*.{mjs,cjs}");
+    expect(nodeGlobs).toContain("**/*.config.{js,ts,mjs,mts,cjs,cts}");
+  });
+});
