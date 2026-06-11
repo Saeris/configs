@@ -9,7 +9,7 @@ export default defineConfig({
   fmt,
   // ── Builds (tsdown) ─────────────────────────────────────────────────
   pack: {
-    entry: [`./src/index.ts`],
+    entry: [`./src/index.ts`, `./src/postcss.ts`],
     clean: true,
     format: [`esm`],
     dts: true,
