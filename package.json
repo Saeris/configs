@@ -30,6 +30,10 @@
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
+    "./postcss": {
+      "types": "./dist/postcss.d.mts",
+      "default": "./dist/postcss.mjs"
+    },
     "./tsconfig": "./src/tsconfig.base.json",
     "./package.json": "./package.json"
   },
@@ -45,12 +49,20 @@
     "test": "vp test --fileParallelism"
   },
   "peerDependencies": {
+    "postcss-preset-env": "^11",
     "vite-plus": "*"
+  },
+  "peerDependenciesMeta": {
+    "postcss-preset-env": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
     "@varlock/bumpy": "^1.7.0",
     "@vitest/coverage-v8": "^4.1.6",
+    "postcss": "^8.5.15",
+    "postcss-preset-env": "^11.3.0",
     "typescript": "6.0.3",
     "vite-plus": "latest",
     "vitest": "npm:@voidzero-dev/vite-plus-test@latest"

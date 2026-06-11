@@ -169,6 +169,83 @@ project-shaped choices like `lib: ["DOM"]`, `customConditions`, and
 either path-relative or depend on whether the project targets the browser, is
 a monorepo, or ships a library.
 
+## 🎨 PostCSS
+
+A shared PostCSS config for modern CSS — native nesting, CSS Modules, and the
+stable feature set — built on a single plugin, `postcss-preset-env`. Install
+that peer dependency, then re-export the config from a one-line
+`postcss.config.mjs`:
+
+```bash
+vp add -D postcss-preset-env
+```
+
+```js
+// postcss.config.mjs
+export { postcss as default } from "@saeris/configs/postcss";
+```
+
+It enables `stage: 3` features plus **spec** CSS Nesting (`nesting-rules`), and
+autoprefixes — all driven by your project's browserslist. There's no
+`postcss-nested` (preset-env does spec-compliant nesting; mixing the two risks
+divergent semantics) and no separate `autoprefixer`.
+
+PostCSS has no `extends` mechanism and the `package.json` `postcss` key can't
+reference a package, so a tiny config file is the only way to consume a shared
+config. Pass per-project tweaks to the function:
+
+```js
+// postcss.config.mjs
+import { postcss } from "@saeris/configs/postcss";
+
+export default postcss({
+  // merges on top of the defaults — keeps nesting-rules
+  features: { "relative-color-syntax": { preserve: true } }
+});
+```
+
+### Browser targets
+
+Targets are **not** baked into the config — `postcss-preset-env` reads your
+[browserslist](https://github.com/browserslist/browserslist), which is the one
+genuinely per-project input. For ~2-year support skewed toward older phones,
+a reasonable `package.json` `browserslist`:
+
+```json
+"browserslist": ["last 2 years", "not dead", "iOS >= 15", "Android >= 10"]
+```
+
+### CSS Modules + TypeScript
+
+If you import CSS Modules into TS/TSX (e.g. for `cva`-driven classnames), add
+[`typescript-plugin-css-modules`](https://github.com/mrmckeb/typescript-plugin-css-modules)
+for autocomplete and types on the imported class names — no generated `.d.ts`
+clutter:
+
+```bash
+vp add -D typescript-plugin-css-modules
+```
+
+```jsonc
+// tsconfig.json (extends @saeris/configs/tsconfig)
+{
+  "compilerOptions": {
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+  }
+}
+```
+
+It's a **language-service** plugin (editor-only), so VS Code must use the
+workspace TypeScript version for it to load — set it once per workspace:
+
+```jsonc
+// .vscode/settings.json
+{ "typescript.tsdk": "node_modules/typescript/lib" }
+```
+
+It's left out of the shared base tsconfig on purpose: not every consumer uses
+CSS Modules, and the plugin requires its own dependency installed.
+
 ## 🤝 Contributing
 
 The project uses [Vite+][viteplus] as a unified toolchain (Oxlint + Oxfmt + tsdown + Vitest) and [Bumpy][bumpy] for versioning and release.
